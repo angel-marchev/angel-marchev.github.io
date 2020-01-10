@@ -1,0 +1,10 @@
+candidate=zeros(15,3);
+objective=zeros(1,3);
+eucl=candidate;
+iter=0;
+best=candidate;
+rec=[0 0 0];
+precision=0;
+gadove(128,128,128);
+kill=candidate;
+ind=candidate;
