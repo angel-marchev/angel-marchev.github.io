@@ -19,6 +19,7 @@ public class GadGenerator : MonoBehaviour
     public GameObject youWin, youLose;
 
     private bool nightCompleted = false;
+    private GadCharts charts;
 
     // Start is called before the first frame update
     void Start()
@@ -33,6 +34,27 @@ public class GadGenerator : MonoBehaviour
             gads.Add(Instantiate(gadPrefab, new Vector2(Random.Range(-7.95f, 3.05f), Random.Range(-3.2f, 2.45f)), Quaternion.identity, transform));
             gads[gads.Count - 1].GetComponent<Movement>().SetColor(new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f)));
         }
+        charts = gameObject.AddComponent<GadCharts>();
+        charts.UpdateBars(gads, targetColor);
+        charts.AddGeneration(gads[BestGadIndex()].GetComponent<Movement>().color, targetColor);
+    }
+
+    public static float Distance(Color color, Color target)
+    {
+        return Mathf.Sqrt(Mathf.Pow((color.r - target.r), 2) + Mathf.Pow((color.g - target.g), 2) + Mathf.Pow((color.b - target.b), 2));
+    }
+
+    int BestGadIndex()
+    {
+        int bestIndex = 0;
+        for (int i = 1; i < gads.Count; i++)
+        {
+            if (Distance(gads[i].GetComponent<Movement>().color, targetColor) < Distance(gads[bestIndex].GetComponent<Movement>().color, targetColor))
+            {
+                bestIndex = i;
+            }
+        }
+        return bestIndex;
     }
 
     // Update is called once per frame
@@ -92,18 +114,9 @@ public class GadGenerator : MonoBehaviour
         }
         generationText.GetComponent<TextMesh>().text = generation + "";
 
-        List<float> euclids = new List<float>();
-        int bestEuclidIndex = 0;
-        for (int i = 0; i < 15; i++)
-        {
-            Color color = gads[i].GetComponent<Movement>().color;
-            euclids.Add(Mathf.Sqrt(Mathf.Pow((color.r - targetColor.r), 2) + Mathf.Pow((color.g - targetColor.g), 2) + Mathf.Pow((color.b - targetColor.b), 2)));
-            if (euclids[euclids.Count - 1] < euclids[bestEuclidIndex])
-            {
-                bestEuclidIndex = euclids.Count - 1;
-            }
-        }
-        Color bestColor = gads[bestEuclidIndex].GetComponent<Movement>().color;
+        Color bestColor = gads[BestGadIndex()].GetComponent<Movement>().color;
+        charts.UpdateBars(gads, targetColor);
+        charts.AddGeneration(bestColor, targetColor);
         bestColorText.GetComponent<TextMesh>().text = "" + (int)(bestColor.r * 256 - 1) + ", " + (int)(bestColor.g * 256 - 1) + ", " + (int)(bestColor.b * 256 - 1);
         if (bestColor.r - targetColor.r < 0.04 && bestColor.r - targetColor.r > -0.04 &&
             bestColor.g - targetColor.g < 0.04 && bestColor.g - targetColor.g > -0.04 &&
@@ -166,6 +179,7 @@ public class GadGenerator : MonoBehaviour
                 if (blue > 1) blue = 1;
                 gads[i].GetComponent<Movement>().SetColor(new Color(red, green, blue));
             }
+            charts.UpdateBars(gads, targetColor);
         }
     }
 }
